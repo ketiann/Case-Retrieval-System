@@ -3,6 +3,68 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useSearchStore } from '../store/searchStore';
 import { searchApi } from '../api';
 
+// 模拟搜索结果数据
+const mockSearchResults = {
+  person: [
+    {
+      entityId: 'person_9527',
+      name: '刘强',
+      highlightSummary: '身份证号372324199407081052，<em>刘强</em>于2026年4月18日涉嫌抢劫',
+      coreUnit: '滨州市无棣县棣丰街道',
+      relatedUnits: ['滨城分局刑侦大队'],
+      businessTags: ['跨区域作案', '前科人员'],
+      eventCount: 2,
+      documentCount: 5
+    },
+    {
+      entityId: 'person_9528',
+      name: '王小明',
+      highlightSummary: '身份证号372324199501011234，<em>王小明</em>是4·18抢劫案的受害人',
+      coreUnit: '滨州市滨城区',
+      relatedUnits: ['滨城分局刑侦大队'],
+      businessTags: ['受害人'],
+      eventCount: 1,
+      documentCount: 2
+    }
+  ],
+  org: [
+    {
+      entityId: 'org_1001',
+      name: '滨州市无棣县棣丰街道',
+      highlightSummary: '<em>滨州市无棣县棣丰街道</em>是刘强的核心归属单位',
+      coreUnit: '滨州市无棣县棣丰街道',
+      relatedUnits: [],
+      businessTags: [],
+      eventCount: 5,
+      documentCount: 10
+    }
+  ],
+  event: [
+    {
+      entityId: 'event_88',
+      name: '4·18滨城区抢劫案',
+      highlightSummary: '<em>4·18滨城区抢劫案</em>发生于2026年4月18日，嫌疑人刘强',
+      coreUnit: '滨城分局刑侦大队',
+      relatedUnits: ['无棣县棣丰街道'],
+      businessTags: ['跨区域作案'],
+      eventCount: 0,
+      documentCount: 8
+    }
+  ],
+  document: [
+    {
+      entityId: 'doc_123',
+      name: '4·18抢劫案现场勘查报告',
+      highlightSummary: '这是<em>4·18抢劫案</em>的现场勘查报告，包含详细的现场情况',
+      coreUnit: '滨城分局刑侦大队',
+      relatedUnits: [],
+      businessTags: ['现场勘查'],
+      eventCount: 1,
+      documentCount: 0
+    }
+  ]
+};
+
 const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -47,10 +109,9 @@ const SearchPage: React.FC = () => {
   const performSearch = async () => {
     setLoading(true);
     try {
-      const response = await searchApi.search(keyword, type, page, pageSize);
-      if (response.code === 0) {
-        setResults(response.data.list, response.data.total);
-      }
+      // 使用模拟数据
+      const results = mockSearchResults[type as keyof typeof mockSearchResults] || [];
+      setResults(results, results.length);
     } catch (error) {
       console.error('Search failed:', error);
     } finally {

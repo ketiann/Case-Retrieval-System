@@ -5,6 +5,119 @@ import { Entity, GraphData, Timeline, TimelineNode } from '../types';
 import EventTimeline from '../components/EventTimeline';
 import * as G6 from '@antv/g6';
 
+// 模拟实体数据
+const mockEntityData = {
+  basicInfo: {
+    id: 'person_9527',
+    name: '刘强',
+    type: 'person',
+    coreUnitId: '滨州市无棣县棣丰街道',
+    properties: {
+      idNumber: '372324199407081052',
+      age: 32,
+      gender: '男'
+    },
+    businessTags: ['跨区域作案', '前科人员'],
+    relatedUnitIds: ['滨城分局刑侦大队'],
+    status: 'active',
+    createdAt: '2026-04-18T08:00:00Z'
+  },
+  graph: {
+    nodes: [
+      { id: 'person_9527', label: '刘强', type: 'person', core: true },
+      { id: 'org_201', label: '无棣县棣丰街道', type: 'org' },
+      { id: 'event_88', label: '4·18抢劫案', type: 'event' },
+      { id: 'org_202', label: '滨城分局', type: 'org' },
+      { id: 'person_9528', label: '王小明', type: 'person' }
+    ],
+    edges: [
+      { source: 'person_9527', target: 'org_201', relation: '核心归属' },
+      { source: 'person_9527', target: 'event_88', relation: '嫌疑人' },
+      { source: 'event_88', target: 'org_202', relation: '主办单位' },
+      { source: 'person_9528', target: 'event_88', relation: '受害人' }
+    ]
+  },
+  timelines: [
+    {
+      eventId: 'event_88',
+      eventName: '4·18滨城区抢劫案',
+      nodes: [
+        {
+          id: 1,
+          eventId: 'event_88',
+          time: '2026-04-18 02:05',
+          title: '嫌疑人进入超市',
+          description: '嫌疑人刘强于凌晨2点05分进入滨城区某超市',
+          docId: 'doc_123',
+          evidenceUrl: 'https://via.placeholder.com/300x200?text=监控截图',
+          createdAt: '2026-04-18T08:00:00Z'
+        },
+        {
+          id: 2,
+          eventId: 'event_88',
+          time: '2026-04-18 02:08',
+          title: '推倒受害人',
+          description: '嫌疑人刘强推倒受害人王小明并抢走其钱包',
+          docId: 'doc_123',
+          evidenceUrl: 'https://via.placeholder.com/300x200?text=现场照片',
+          createdAt: '2026-04-18T08:00:00Z'
+        },
+        {
+          id: 3,
+          eventId: 'event_88',
+          time: '2026-04-18 02:10',
+          title: '逃离现场',
+          description: '嫌疑人刘强抢钱后迅速逃离现场',
+          docId: 'doc_123',
+          createdAt: '2026-04-18T08:00:00Z'
+        },
+        {
+          id: 4,
+          eventId: 'event_88',
+          time: '2026-04-18 08:00',
+          title: '立案侦查',
+          description: '滨城分局刑侦大队对案件进行立案侦查',
+          docId: 'doc_123',
+          createdAt: '2026-04-18T08:00:00Z'
+        }
+      ]
+    },
+    {
+      eventId: 'event_12',
+      eventName: '2020年刘强盗窃案',
+      nodes: [
+        {
+          id: 5,
+          eventId: 'event_12',
+          time: '2020-05-10 14:00',
+          title: '盗窃案发',
+          description: '刘强在滨州市某商场盗窃手机一部',
+          docId: 'doc_456',
+          createdAt: '2020-05-10T15:00:00Z'
+        },
+        {
+          id: 6,
+          eventId: 'event_12',
+          time: '2020-05-15 09:00',
+          title: '抓获归案',
+          description: '刘强被公安机关抓获归案',
+          docId: 'doc_456',
+          createdAt: '2020-05-15T10:00:00Z'
+        },
+        {
+          id: 7,
+          eventId: 'event_12',
+          time: '2020-06-20 14:00',
+          title: '法院判决',
+          description: '刘强因盗窃罪被判处有期徒刑6个月',
+          docId: 'doc_456',
+          createdAt: '2020-06-20T15:00:00Z'
+        }
+      ]
+    }
+  ]
+};
+
 const EntityDetailPage: React.FC = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
   const [entity, setEntity] = useState<Entity | null>(null);

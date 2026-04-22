@@ -3,9 +3,57 @@ import { dashboardApi } from '../api';
 import { DashboardStatistics, Alert } from '../types';
 import * as echarts from 'echarts';
 
+// 模拟数据
+const mockStatistics: DashboardStatistics = {
+  kpi: {
+    newCases: 12,
+    activeCases: 89,
+    arrestedToday: 5,
+    totalAmount: 2300000
+  },
+  caseTypeDistribution: [
+    { type: '刑事', value: 45, subTypes: [{ name: '抢劫', value: 10 }, { name: '盗窃', value: 20 }, { name: '故意伤害', value: 15 }] },
+    { type: '禁毒', value: 15 },
+    { type: '交通', value: 25 },
+    { type: '其他', value: 15 }
+  ],
+  trend: {
+    dates: ['04-15', '04-16', '04-17', '04-18', '04-19', '04-20', '04-21'],
+    binzhou: [5, 7, 6, 12, 9, 8, 11],
+    huimin: [2, 1, 3, 2, 4, 1, 2]
+  },
+  heatmapData: [
+    { lng: 118.02, lat: 37.38, count: 3 },
+    { lng: 118.03, lat: 37.39, count: 1 },
+    { lng: 118.01, lat: 37.37, count: 2 },
+    { lng: 118.04, lat: 37.40, count: 4 },
+    { lng: 118.00, lat: 37.36, count: 1 }
+  ],
+  alerts: [
+    { id: 'a1', title: '刘强抓捕任务已下达', type: '抓捕', targetUrl: '/entity/person/9527' },
+    { id: 'a2', title: '4·18滨城区抢劫案需要补充证据', type: '证据补充', targetUrl: '/entity/event/88' },
+    { id: 'a3', title: '系统需要更新到最新版本', type: '系统更新', targetUrl: '/admin' }
+  ],
+  relationGraph: {
+    nodes: [
+      { id: 'person_9527', label: '刘强', type: 'person', core: true },
+      { id: 'org_201', label: '无棣县棣丰街道', type: 'org' },
+      { id: 'event_88', label: '4·18抢劫案', type: 'event' },
+      { id: 'org_202', label: '滨城分局', type: 'org' },
+      { id: 'person_9528', label: '王小明', type: 'person' }
+    ],
+    edges: [
+      { source: 'person_9527', target: 'org_201', relation: '核心归属' },
+      { source: 'person_9527', target: 'event_88', relation: '嫌疑人' },
+      { source: 'event_88', target: 'org_202', relation: '主办单位' },
+      { source: 'person_9528', target: 'event_88', relation: '受害人' }
+    ]
+  }
+};
+
 const DashboardPage: React.FC = () => {
-  const [statistics, setStatistics] = useState<DashboardStatistics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [statistics, setStatistics] = useState<DashboardStatistics | null>(mockStatistics);
+  const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('today');
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
   
@@ -44,7 +92,7 @@ const DashboardPage: React.FC = () => {
   };
 
   const renderCharts = () => {
-    if (!statistics) return;
+    if (!displayStatistics) return;
 
     // 渲染案件类型分布图表
     if (caseTypeChartRef.current) {
@@ -68,7 +116,7 @@ const DashboardPage: React.FC = () => {
             name: '案件类型',
             type: 'pie',
             radius: '50%',
-            data: statistics.caseTypeDistribution.map(item => ({
+            data: displayStatistics.caseTypeDistribution.map(item => ({
               value: item.value,
               name: item.type
             })),
@@ -90,12 +138,12 @@ const DashboardPage: React.FC = () => {
       if (!trendChart.current) {
         trendChart.current = echarts.init(trendChartRef.current);
       }
-      const series = Object.keys(statistics.trend)
+      const series = Object.keys(displayStatistics.trend)
         .filter(key => key !== 'dates')
         .map(key => ({
           name: key,
           type: 'line',
-          data: statistics.trend[key] as number[]
+          data: displayStatistics.trend[key] as number[]
         }));
       const option = {
         title: {
@@ -106,12 +154,12 @@ const DashboardPage: React.FC = () => {
           trigger: 'axis'
         },
         legend: {
-          data: Object.keys(statistics.trend).filter(key => key !== 'dates'),
+          data: Object.keys(displayStatistics.trend).filter(key => key !== 'dates'),
           bottom: 0
         },
         xAxis: {
           type: 'category',
-          data: statistics.trend.dates
+          data: displayStatistics.trend.dates
         },
         yAxis: {
           type: 'value'
@@ -136,7 +184,7 @@ const DashboardPage: React.FC = () => {
         },
         visualMap: {
           min: 0,
-          max: Math.max(...statistics.heatmapData.map(item => item.count)),
+          max: Math.max(...displayStatistics.heatmapData.map(item => item.count)),
           calculable: true,
           inRange: {
             color: ['#e0f2fe', '#38bdf8', '#0284c7']
@@ -169,7 +217,7 @@ const DashboardPage: React.FC = () => {
             name: '案件数量',
             type: 'scatter',
             coordinateSystem: 'geo',
-            data: statistics.heatmapData.map(item => ({
+            data: displayStatistics.heatmapData.map(item => ({
               value: [item.lng, item.lat, item.count]
             })),
             symbolSize: function (val: any) {
@@ -219,11 +267,11 @@ const DashboardPage: React.FC = () => {
             label: {
               show: true
             },
-            data: statistics.relationGraph.nodes.map(node => ({
+            data: displayStatistics.relationGraph.nodes.map(node => ({
               name: node.label,
               symbolSize: node.core ? 30 : 20
             })),
-            links: statistics.relationGraph.edges.map(edge => ({
+            links: displayStatistics.relationGraph.edges.map(edge => ({
               source: edge.source,
               target: edge.target
             })),
@@ -239,17 +287,16 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div className="container mx-auto px-4 py-8 text-center">加载中...</div>;
-  }
+  // 使用模拟数据
+  const displayStatistics = statistics || mockStatistics;
 
-  if (!statistics) {
-    return <div className="container mx-auto px-4 py-8 text-center">未获取到统计数据</div>;
+  if (loading && !statistics) {
+    return <div className="container mx-auto px-4 py-8 text-center">加载中...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">领导驾驶舱</h1>
+      <h1 className="text-2xl font-bold mb-6">数据看板</h1>
 
       {/* 时间筛选器 */}
       <div className="flex flex-wrap gap-4 mb-6">
@@ -285,19 +332,19 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="text-sm text-gray-500 mb-1">今日新增案件</div>
-          <div className="text-2xl font-bold text-blue-600">{statistics.kpi.newCases}</div>
+          <div className="text-2xl font-bold text-blue-600">{displayStatistics.kpi.newCases}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="text-sm text-gray-500 mb-1">在侦案件</div>
-          <div className="text-2xl font-bold text-green-600">{statistics.kpi.activeCases}</div>
+          <div className="text-2xl font-bold text-green-600">{displayStatistics.kpi.activeCases}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="text-sm text-gray-500 mb-1">今日抓获</div>
-          <div className="text-2xl font-bold text-red-600">{statistics.kpi.arrestedToday}</div>
+          <div className="text-2xl font-bold text-red-600">{displayStatistics.kpi.arrestedToday}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="text-sm text-gray-500 mb-1">涉案总金额</div>
-          <div className="text-2xl font-bold text-purple-600">¥{statistics.kpi.totalAmount.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-purple-600">¥{displayStatistics.kpi.totalAmount.toLocaleString()}</div>
         </div>
       </div>
 
@@ -319,7 +366,7 @@ const DashboardPage: React.FC = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-4">最新待办与预警</h3>
           <div className="space-y-3 max-h-80 overflow-y-auto">
-            {statistics.alerts.map(alert => (
+            {displayStatistics.alerts.map(alert => (
               <div key={alert.id} className="p-3 border rounded-md hover:bg-gray-50">
                 <div className="font-medium">{alert.title}</div>
                 <div className="text-sm text-gray-500 mt-1">类型：{alert.type}</div>

@@ -9,9 +9,7 @@ const Navbar: React.FC = () => {
   const navItems = [
     { path: '/search', label: '综合检索' },
     { path: '/upload', label: '文档上传' },
-    { path: '/audit/prefecture', label: '地市审核' },
-    { path: '/audit/province', label: '省厅汇总' },
-    { path: '/dashboard', label: '领导驾驶舱' },
+    { path: '/dashboard', label: '数据看板' },
     { path: '/admin', label: '系统管理' }
   ];
 

@@ -2,46 +2,75 @@ import React, { useState, useEffect } from 'react';
 import { adminApi } from '../api';
 import { User, Unit, Tag } from '../types';
 
+// 模拟数据
+const mockUsers: User[] = [
+  { id: 'user001', name: '李海峰', role: 'prefecture_auditor', coreUnitId: 'unit_1001', relatedUnitIds: ['unit_1002'], permissions: ['search', 'upload', 'audit_prefecture'] },
+  { id: 'user002', name: '王小明', role: 'uploader', coreUnitId: 'unit_1001', relatedUnitIds: [], permissions: ['upload'] },
+  { id: 'user003', name: '张三', role: 'province_auditor', coreUnitId: 'unit_001', relatedUnitIds: [], permissions: ['search', 'audit_province'] },
+  { id: 'user004', name: '李四', role: 'leader', coreUnitId: 'unit_001', relatedUnitIds: ['unit_1001', 'unit_1002'], permissions: ['search', 'dashboard'] }
+];
+
+const mockTags: Tag[] = [
+  { id: 1, name: '跨市协作', category: '业务类型' },
+  { id: 2, name: '2026雷霆行动', category: '行动代号' },
+  { id: 3, name: '在逃人员', category: '人员状态' },
+  { id: 4, name: '跨区域作案', category: '案件类型' },
+  { id: 5, name: '前科人员', category: '人员状态' }
+];
+
+const mockUnits: Unit[] = [
+  {
+    id: 'unit_001',
+    name: '山东省公安厅',
+    level: 1,
+    children: [
+      {
+        id: 'unit_1001',
+        name: '滨州市公安局',
+        level: 2,
+        children: [
+          {
+            id: 'unit_1001_001',
+            name: '滨城区分局',
+            level: 3
+          },
+          {
+            id: 'unit_1001_002',
+            name: '无棣县局',
+            level: 3
+          }
+        ]
+      },
+      {
+        id: 'unit_1002',
+        name: '东营市公安局',
+        level: 2
+      }
+    ]
+  }
+];
+
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'tags' | 'units'>('users');
-  const [users, setUsers] = useState<User[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [tags, setTags] = useState<Tag[]>(mockTags);
+  const [units, setUnits] = useState<Unit[]>(mockUnits);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      switch (activeTab) {
-        case 'users':
-          const usersResponse = await adminApi.getUsers();
-          if (usersResponse.code === 0) {
-            setUsers(usersResponse.data.list);
-          }
-          break;
-        case 'tags':
-          const tagsResponse = await adminApi.getTags();
-          if (tagsResponse.code === 0) {
-            setTags(tagsResponse.data.list);
-          }
-          break;
-        case 'units':
-          const unitsResponse = await adminApi.getUnits();
-          if (unitsResponse.code === 0) {
-            setUnits(unitsResponse.data.tree);
-          }
-          break;
-      }
-    } catch (error) {
-      console.error('Failed to fetch admin data:', error);
-    } finally {
-      setLoading(false);
+    // 使用模拟数据
+    switch (activeTab) {
+      case 'users':
+        setUsers(mockUsers);
+        break;
+      case 'tags':
+        setTags(mockTags);
+        break;
+      case 'units':
+        setUnits(mockUnits);
+        break;
     }
-  };
+  }, [activeTab]);
 
   const renderUsers = () => {
     return (
